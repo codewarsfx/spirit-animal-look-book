@@ -18,15 +18,67 @@ class App extends Component {
     };
   }
 
+  componentDidMount(){
+   auth.onAuthStateChanged((user)=>{
+     if(!user) return;
+      this.usersRef= database.ref('/users');
+     this.userRef = this.usersRef.child(`${user.uid}`);
+       this.setState({
+        user
+      });
+    
+
+     this.userRef.once('value').then((snapshot)=>{
+       
+      if(snapshot.val()) return;
+      this.userRef.set({
+          photoURL:user.photoURL,
+          name:user.displayName,
+          email:user.email
+      });
+
+    
+     });
+
+     this.usersRef.on("value",(snapshot)=>{
+
+      this.setState({
+        users:snapshot.val()
+      });
+
+     });
+
+   });
+
+
+  }
+
   render() {
     const { user, users } = this.state;
+ 
+
 
     return (
       <div className="App">
         <header className="App--header">
           <h1>Social Animals</h1>
         </header>
-        <SignIn />
+        {
+        user ?
+        <div>
+          <section className="profileCards">
+            {
+              map(users, (userData,uid)=>{
+
+                return <ProfileCard key={uid}  uid={uid} user={userData}/>;
+
+              })
+            }
+          </section>
+          <CurrentUser user= {user}/>
+        </div>
+        :<SignIn/>
+  }
       </div>
     );
   }
