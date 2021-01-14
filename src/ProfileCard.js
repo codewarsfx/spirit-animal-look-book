@@ -9,6 +9,9 @@ class ProfileCard extends Component {
     super(props);
     this.handleSubmit=this.handleSubmit.bind(this);
     this.userRef=null;
+    this.state={
+      progress:0
+    };
     
   }
 
@@ -17,6 +20,15 @@ class ProfileCard extends Component {
     const fileUploadTask= storage.ref('userpictures').child(`${this.props.uid}`)
                                                       .child(this.props.user.name)
                                                       .put(file);
+
+      fileUploadTask.on('state_changed',snapshot=>{
+
+        this.setState({
+          progress: snapshot.bytesTransferred/snapshot.totalBytes * 100
+        });
+
+      });
+                                                      
     fileUploadTask.then((snapshot)=>{     
       this.userRef= database.ref(`users/${this.props.uid}`)
                             .child('photoURL').set(snapshot.downloadURL);
@@ -36,6 +48,7 @@ class ProfileCard extends Component {
         placeholder= 'change profile image'
         onChange={this.handleSubmit}
         />
+        <progress min='0' max='100' value={`${this.state.progress}`}/>
 
       </article>
     );
